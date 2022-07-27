@@ -4,26 +4,25 @@
 #include "buffer.h"
 #include <EMGFilters.h>
 
-static const byte emgPin = 15;
+static const byte emgPin = 27;
 static const int calibrationTime = 10000;
 static const int trashTime = 5000;
 
 unsigned long setupTime;
 
 float envlope = 0.0;
-float alpha = 0.05;
-float S = envlope;
 
-float minValue = 99999;
 float maxValue = 0;
-bool calibrated = false;
+float minValue = 9999999999;
+float bufferedValue = 0;
 
-Buffer bufferEMG(1500);
+Buffer bufferEMG(2000);
 EMGFilters myFilter;
 
 void initEMG()
 {
   bufferEMG.initBuffer();
+  pinMode(emgPin,INPUT);
   myFilter.init(SAMPLE_FREQ_500HZ, NOTCH_FREQ_60HZ, true, true, true);
 }
 
@@ -31,12 +30,8 @@ float emgRead()
 {
   int value = analogRead(emgPin);
   int DataAfterFilter = myFilter.update(value);
-
   envlope = sq(DataAfterFilter);
-
-  S = (alpha * abs(DataAfterFilter)) + ((1 - alpha) * S);
-  bufferEMG.addToBuffer(S);
-
+  bufferEMG.addToBuffer(envlope);
   return bufferEMG.getMeanValue();
 }
 
@@ -48,22 +43,22 @@ void EMGCalibrate()
   while(now-setupTime < trashTime)
   {
     now = millis();
-    emgRead();
+    bufferedValue = emgRead();
   }
   Serial.println("Inicio calibración");
   while(now-setupTime<calibrationTime+trashTime)
   {
     now = millis();
 
-    float bufferedValue = emgRead();
+    bufferedValue = emgRead();
 
-    if(bufferedValue < minValue)
-    {
-      minValue = bufferedValue;
-    }
     if(bufferedValue > maxValue)
     {
       maxValue = bufferedValue;
+    }
+    if(bufferedValue < minValue)
+    {
+      minValue = bufferedValue;
     }
   }
   Serial.println("Fin calibración");
@@ -72,7 +67,6 @@ void EMGCalibrate()
 bool EMGValueDiscrete()
 {
   float emgValue = emgRead(); 
-
   return map(emgValue, minValue, maxValue, 0, 1);
 }
 

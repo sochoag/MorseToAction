@@ -12,14 +12,8 @@ void setup() {
 
 void loop() 
 {
-  int avg = 0;
-  const byte muestras = 20;
-  for(int i=0; i<muestras; i++)
-  {
-    avg += EMGValueDiscrete();
-  }
-  avg = avg/muestras;
-  readMorseInput(avg);           // read the button state  
+  bool input = digitalRead(34) || EMGValueDiscrete();
+  readMorseInput(input);           // read the button state  
   if(flag)
   {
     flag = false;
