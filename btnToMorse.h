@@ -3,7 +3,7 @@
 String toCompare[9] = 
 {
   ".-",     // A
-  "-..",    // B  
+  "-...",    // B  
   "-.-.",   // C
   "-..",    // D
   ".",      // E
@@ -40,33 +40,34 @@ void initButton()
   pinMode(buttonPin, INPUT);
 }
 
-void readButtonState() 
+void readMorseInput(bool state) 
 {
   currentMillis = millis();
+  
   if(currentMillis - previousButtonMillis > intervalButton) 
-  {
-    bool buttonState = digitalRead(buttonPin);    
-
-    if (buttonState && !buttonStatePrevious && buttonStateLongPress==0) {
+  { 
+    if (state && !buttonStatePrevious && buttonStateLongPress==0) {
       pressedTime = currentMillis;
       buttonStatePrevious = HIGH;
     }
 
     buttonPressDuration = currentMillis - pressedTime;
 
-    if (buttonState && buttonStateLongPress<1 && buttonPressDuration >= pointDuration)
+    if (state && buttonStateLongPress<1 && buttonPressDuration >= pointDuration)
     {
       buttonStateLongPress = 1;
       Serial.println("Point");
+      lastExecution = currentMillis;
     }
 
-    if (buttonState && buttonStateLongPress<2 && buttonPressDuration >= dashDuration) 
+    if (state && buttonStateLongPress<2 && buttonPressDuration >= dashDuration) 
     {
       buttonStateLongPress = 2;
       Serial.println("Dash");
+      lastExecution = currentMillis;
     }
       
-    if (!buttonState && buttonStatePrevious) 
+    if (!state && buttonStatePrevious) 
     {
       switch(buttonStateLongPress)
       {
@@ -74,8 +75,7 @@ void readButtonState()
         case 2: morseString += "-"; break;
         default: morseString += ""; break;
       }
-      
-      lastExecution = currentMillis;
+
 
       buttonStatePrevious = LOW;
       buttonStateLongPress = 0;

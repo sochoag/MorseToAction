@@ -1,15 +1,25 @@
 #include "btnToMorse.h"
 #include "finger.h"
+#include "EMG.h"
 
 void setup() {
   Serial.begin(115200);
   initButton();
   initFingers();
+  initEMG();
+  EMGCalibrate();
 }
 
 void loop() 
 {
-  readButtonState();           // read the button state  
+  int avg = 0;
+  const byte muestras = 20;
+  for(int i=0; i<muestras; i++)
+  {
+    avg += EMGValueDiscrete();
+  }
+  avg = avg/muestras;
+  readMorseInput(avg);           // read the button state  
   if(flag)
   {
     flag = false;
