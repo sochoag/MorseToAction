@@ -1,73 +1,70 @@
 #ifndef EMG_H
 #define EMG_H
 
-#include "buffer.h"
 #include <EMGFilters.h>
 
-static const byte emgPin = 27;
-static const int calibrationTime = 10000;
-static const int trashTime = 5000;
-
-unsigned long setupTime;
-
-float envlope = 0.0;
-
-float maxValue = 0;
-float minValue = 9999999999;
-float bufferedValue = 0;
-
-Buffer bufferEMG(2000);
-EMGFilters myFilter;
+EMGFilters emgFilters[emgPinsSize];
 
 void initEMG()
 {
-  bufferEMG.initBuffer();
-  pinMode(emgPin,INPUT);
-  myFilter.init(SAMPLE_FREQ_500HZ, NOTCH_FREQ_60HZ, true, true, true);
+  for (int it = 0; it < emgPinsSize; it++)
+  {
+    pinMode(emgPins[it], INPUT);
+    emgFilters[it].init(SAMPLE_FREQ_1000HZ, NOTCH_FREQ_60HZ, true, true, true);
+  }
 }
 
-float emgRead()
+void emgRead()
 {
-  int value = analogRead(emgPin);
-  int DataAfterFilter = myFilter.update(value);
-  envlope = sq(DataAfterFilter);
-  bufferEMG.addToBuffer(envlope);
-  return bufferEMG.getMeanValue();
+  for (int it = 0; it < emgPinsSize; it++)
+  {
+    maxVal[it] = 0.0;
+  }
+  for (int count = 0; count <= samples; count++)
+  {
+    int value[emgPinsSize];
+    int DataAfterFilter[emgPinsSize];
+    float envelope[emgPinsSize];
+    for (int it = 0; it < emgPinsSize; it++)
+    {
+      value[it] = analogRead(emgPins[it]);
+      DataAfterFilter[it] = emgFilters[it].update(value[it]);
+      envelope[it] = sq(DataAfterFilter[it]);
+      if (envelope[it] > maxVal[it])
+      {
+        maxVal[it] = envelope[it];
+      }
+    }
+  }
 }
 
 void EMGCalibrate()
 {
-  unsigned long now = millis();
   setupTime = millis();
-  Serial.println("Inicio trash");
-  while(now-setupTime < trashTime)
+  printf("Trash\n");
+  while (millis() - setupTime < trashTime)
   {
-    now = millis();
-    bufferedValue = emgRead();
+    emgRead();
   }
-  Serial.println("Inicio calibración");
-  while(now-setupTime<calibrationTime+trashTime)
+  printf("Calibration\n");
+  setupTime = millis();
+  while (millis() - setupTime < calibrationTime)
   {
-    now = millis();
-
-    bufferedValue = emgRead();
-
-    if(bufferedValue > maxValue)
+    emgRead();
+    for (int it = 0; it < emgPinsSize; it++)
     {
-      maxValue = bufferedValue;
-    }
-    if(bufferedValue < minValue)
-    {
-      minValue = bufferedValue;
+      calibratedValue[it] = calibratedValue[it] > maxVal[it] ? calibratedValue[it] : maxVal[it];
     }
   }
-  Serial.println("Fin calibración");
 }
 
-bool EMGValueDiscrete()
+void EMGValueDiscrete()
 {
-  float emgValue = emgRead(); 
-  return map(emgValue, minValue, maxValue, 0, 1);
+  emgRead();
+  for (int it = 0; it < emgPinsSize; it++)
+  {
+    emgDiscrete[it] = maxVal[it] > calibratedValue[it] ? true : false;
+  }
 }
 
 #endif
