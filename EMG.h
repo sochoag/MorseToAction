@@ -2,7 +2,7 @@
 #define EMG_H
 void initEMG()
 {
-  for (int it = 0; it < emgPinsSize; it++)
+  for (byte it = 0; it < emgPinsSize; it++)
   {
     pinMode(emgPins[it], INPUT);
   }
@@ -10,14 +10,14 @@ void initEMG()
 
 void emgRead()
 {
-  for (int it = 0; it < emgPinsSize; it++)
+  for (byte it = 0; it < emgPinsSize; it++)
   {
     maxVal[it] = 0;
   }
   for (int count = 0; count <= samples; count++)
   {
     int value[emgPinsSize];
-    for (int it = 0; it < emgPinsSize; it++)
+    for (byte it = 0; it < emgPinsSize; it++)
     {
       value[it] = analogRead(emgPins[it]);
       if (value[it] > maxVal[it])
@@ -41,17 +41,18 @@ void EMGCalibrate()
   while (millis() - setupTime < calibrationTime)
   {
     emgRead();
-    for (int it = 0; it < emgPinsSize; it++)
+    for (byte it = 0; it < emgPinsSize; it++)
     {
       calibratedValue[it] = calibratedValue[it] > maxVal[it] ? calibratedValue[it] : maxVal[it];
     }
   }
+  printf("End of calibration\n");
 }
 
 void EMGValueDiscrete()
 {
   emgRead();
-  for (int it = 0; it < emgPinsSize; it++)
+  for (byte it = 0; it < emgPinsSize; it++)
   {
     emgDiscrete[it] = maxVal[it] > calibratedValue[it] ? true : false;
   }

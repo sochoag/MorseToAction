@@ -2,15 +2,15 @@
 #define BTN_TO_MOTSE_H
 String toCompare[9] =
     {
-        ".-",   // A
-        "-...", // B
-        "-.-.", // C
-        "-..",  // D
-        ".",    // E
-        "..-.", // F
-        "--.",  // G
-        "....", // H
-        "..",   // I
+        ".",   // A
+        "-",   // B
+        "..",  // C
+        "--",  // D
+        "-.",  // E
+        "...", // F
+        "---", // G
+        ".-",  // H
+        "..-", // I
 };
 
 String morseString = "";
@@ -98,7 +98,7 @@ void readMorseInput(bool state)
         if (morseString == toCompare[i])
         {
           flag = true;
-          action = i;
+          action = i + 1;
           // Serial.println(i);
         }
       }

@@ -3,7 +3,7 @@
 
 const byte samples = 200;
 
-static const byte emgPins[] = {33, 32};
+static const byte emgPins[] = {33, 32, 35};
 static const byte emgPinsSize = sizeof(emgPins);
 
 int calibratedValue[emgPinsSize];
