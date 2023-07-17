@@ -11,19 +11,16 @@ void setup()
 
 void loop()
 {
-  emgRead();
-  for (int it = 0; it < emgPinsSize; it++)
+  EMGValueDiscrete();
+  bool result = false;
+  for (byte it = 0; it < emgPinsSize; it++)
   {
-    printf("Sensor%d:%f\n", it, maxVal[it]);
-    printf("CalibratedValue%d:%f\n", it, calibratedValue[it]);
+    result = result || emgDiscrete[it];
   }
-  // printf("Max:%f\n", maxVal);
-  // delay(100);
-  // bool input = EMGValueDiscrete();
-  // readMorseInput(input); // read the button state
-  // if (flag)
-  // {
-  //   flag = false;
-  //   Serial.println(action);
-  // }
+  readMorseInput(result);
+  if (flag)
+  {
+    printf("Accion %d\n", action);
+    flag = false;
+  }
 }
